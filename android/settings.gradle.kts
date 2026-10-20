@@ -1,5 +1,6 @@
 pluginManagement {
     repositories {
+        google()
         gradlePluginPortal()
         mavenCentral()
     }
@@ -8,3 +9,4 @@ pluginManagement {
 rootProject.name = "payannouncer-android"
 include(":core")
 include(":ledger")
+include(":storage")

@@ -1,0 +1,140 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "9c3a2fbda648a9a3b05a10094e5526cf",
+    "entities": [
+      {
+        "tableName": "payments",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`row_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `id` TEXT NOT NULL, `sender` TEXT NOT NULL, `amount_paise` INTEGER NOT NULL, `payer` TEXT, `txn_id` TEXT, `timestamp` TEXT NOT NULL, `status` TEXT NOT NULL, `source` TEXT NOT NULL, `needs_review` INTEGER NOT NULL, `large` INTEGER NOT NULL, `duplicate` INTEGER NOT NULL, `dedupe_key` TEXT NOT NULL, `dedupe_uncertain` INTEGER NOT NULL, `reason` TEXT NOT NULL, `ingested_at` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "rowId",
+            "columnName": "row_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sender",
+            "columnName": "sender",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "amountPaise",
+            "columnName": "amount_paise",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "payer",
+            "columnName": "payer",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "txnId",
+            "columnName": "txn_id",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "source",
+            "columnName": "source",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "needsReview",
+            "columnName": "needs_review",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "large",
+            "columnName": "large",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "duplicate",
+            "columnName": "duplicate",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dedupeKey",
+            "columnName": "dedupe_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dedupeUncertain",
+            "columnName": "dedupe_uncertain",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reason",
+            "columnName": "reason",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ingestedAt",
+            "columnName": "ingested_at",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "row_id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_payments_dedupe_key",
+            "unique": false,
+            "columnNames": [
+              "dedupe_key"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_payments_dedupe_key` ON `${TABLE_NAME}` (`dedupe_key`)"
+          },
+          {
+            "name": "index_payments_status_duplicate",
+            "unique": false,
+            "columnNames": [
+              "status",
+              "duplicate"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_payments_status_duplicate` ON `${TABLE_NAME}` (`status`, `duplicate`)"
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9c3a2fbda648a9a3b05a10094e5526cf')"
+    ]
+  }
+}

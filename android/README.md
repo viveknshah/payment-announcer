@@ -1,25 +1,31 @@
 # Android core (Kotlin)
 
-This directory is the first step of the Android port: the SMS parser and the
-ledger rules, moved from Python to dependency-free Kotlin and pinned to the same
-tests.
+This directory is the first step of the Android port: the SMS parser, the ledger
+rules and the Room storage adapter, moved from Python to Kotlin and pinned to
+the same tests.
 
-**Status: parser and in-memory ledger only.** There is no Android app,
+**Status: parser, ledger rules and Room storage.** There is no Android app,
 notification listener, voice or UI here yet. Those are planned in
 [`../docs/android-roadmap.md`](../docs/android-roadmap.md).
 
-## Why separate JVM modules
+## Modules
 
-The parser and ledger are pure Kotlin/JVM. Keeping them out of the Android
-module means:
+| Module | Type | What it holds |
+|---|---|---|
+| `:core` | Kotlin/JVM | parser, config, `PaymentRecord` |
+| `:ledger` | Kotlin/JVM | dedupe, undo, daily stats, `LedgerStore` |
+| `:storage` | Android library | Room entities, DAO and `RoomLedgerStore` |
 
-- the 35 tests run in milliseconds on a laptop, with no emulator;
+Keeping the rules out of the Android module means:
+
+- the 41 tests run on a laptop, with no emulator;
 - the Python app stays the reference implementation and can be diffed against
   the Kotlin output;
-- the later Android app depends on `:core` and `:ledger` instead of copying
-  rules into an Activity.
+- the later Android app depends on `:core`, `:ledger` and `:storage` instead of
+  copying rules into an Activity.
 
-No Android SDK is needed to build or test these modules.
+`:core` and `:ledger` need only a JDK. `:storage` needs the Android SDK because
+Room is an Android library; its tests run on the JVM under Robolectric.
 
 ## Run the tests
 
@@ -33,9 +39,22 @@ gradlew.bat test
 ./gradlew test
 ```
 
-Use `:core:test` or `:ledger:test` for one module. The Gradle wrapper downloads
-Gradle 8.10.2 and JUnit 4.13.2 on first run. A JDK 17 or newer must be on
-`JAVA_HOME` (Android Studio ships one).
+Use `:core:test` or `:ledger:test` for the pure-JVM modules, and
+`:storage:testDebugUnitTest` for the Room adapter (Robolectric, no emulator).
+For a JDK-only run that skips Android, use
+`gradlew :core:test :ledger:test`.
+The Gradle wrapper downloads Gradle 8.10.2, JUnit 4.13.2 and Room 2.7.2 on first
+run. A JDK 17 or newer must be on `JAVA_HOME` (Android Studio ships one).
+
+For `:storage`, install Android SDK 35 and point `ANDROID_HOME` at it:
+
+```bash
+sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+```
+
+The first Robolectric run also downloads an Android runtime jar, so it is slower
+than the JVM-only tests. `local.properties` with `sdk.dir=...` works too; it is
+git-ignored.
 
 The corpus test reads `../../sample_sms.txt`, the same 16 messages as
 `python app.py demo`, and asserts:
@@ -83,17 +102,28 @@ The ledger keeps the same duplicate rules as `ledger.py`:
 
 ```kotlin
 import dev.viveknshah.payannouncer.ledger.Ledger
+import dev.viveknshah.payannouncer.storage.LedgerDatabase
+import dev.viveknshah.payannouncer.storage.RoomLedgerStore
 
-val ledger = Ledger()                 // InMemoryLedgerStore by default
+val ledger = Ledger()                 // InMemoryLedgerStore, for tests
 ledger.add(record)
 val stats = ledger.dailyStats()       // today, local date
 check(stats.count == 1)
 check(stats.totalPaise == 3_700L)
 ```
 
-`LedgerStore` is the storage seam. The app will provide a Room-backed
-implementation; dedupe, undo and daily stats stay in `:ledger` and are tested
-without Android.
+`LedgerStore` is the storage seam. In the app, back it with Room:
+
+```kotlin
+// Once per process, off the main thread.
+val db = LedgerDatabase.open(context)
+val store = RoomLedgerStore(db.paymentDao())
+val ledger = Ledger(store)
+```
+
+Dedupe, undo and daily stats stay in `:ledger` and are tested without Android.
+Room only keeps the rows; `PaymentDao.hasCountedKey` uses the same counted
+predicate as `ledger.py`, and undo rewrites the table in a transaction.
 
 ## Parity contract
 
@@ -129,13 +159,23 @@ android/
       Ledger.kt
     src/test/kotlin/dev/viveknshah/payannouncer/ledger/
       LedgerTest.kt
+  storage/
+    build.gradle.kts
+    schemas/dev.viveknshah.payannouncer.storage.LedgerDatabase/1.json
+    src/main/kotlin/dev/viveknshah/payannouncer/storage/
+      PaymentEntity.kt
+      PaymentDao.kt
+      LedgerDatabase.kt
+      RoomLedgerStore.kt
+    src/test/kotlin/dev/viveknshah/payannouncer/storage/
+      RoomLedgerStoreTest.kt
   tools/
     export_parser_golden.py
 ```
 
 ## Next
 
-`docs/android-roadmap.md` has the build order. The next code step is the Room
-adapter behind `LedgerStore`, then the notification listener spike. The Room
-adapter is what makes the ledger survive a phone reboot; the rules are already
-tested here.
+`docs/android-roadmap.md` has the build order. The next code step is the typed
+config loader from assets, then the notification listener spike. Room now
+survives a reopen, so the remaining storage work is a migration policy when the
+schema changes.

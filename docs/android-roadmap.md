@@ -4,10 +4,11 @@ The Week 3 submission is the Python demo. This document is the plan for the
 thing she can actually keep in her pocket: an Android app that hears the
 payment, says it out loud in Hindi, and closes the day without a laptop.
 
-Status today: **step 0 is done, and step 1's rules are done in memory**. The
-parser and ledger are ported to Kotlin and pinned by 35 JVM tests that read the
-same 16-message corpus as the Python demo (8 counted, ₹5,716). The Room adapter,
-config loader and everything on the phone are still to build.
+Status today: **step 0 is done, and step 1 has its rules and Room storage**. The
+parser, ledger and Room adapter are ported and pinned by 41 tests, including the
+same 16-message corpus as the Python demo (8 counted, ₹5,716) and a Room
+close/reopen test. The config loader and everything on the phone are still to
+build.
 
 ## Target architecture
 
@@ -86,9 +87,10 @@ A summary is a nice-to-have. The announcement is the product.
 ```
 android/
   core/                     done: parser, config, record, 25 tests
-  ledger/                   done: in-memory dedupe + daily stats, 10 tests
+  ledger/                   done: dedupe + daily stats, 10 tests
+  storage/                  done: Room entity/DAO + RoomLedgerStore, 6 tests
   app/
-    data/RoomLedger.kt               adapter behind LedgerStore (next)
+    data/ConfigLoader.kt             typed config from assets (next)
     intake/NotificationIntakeService.kt
     intake/SmsReceiver.kt            (foss flavor)
     voice/HindiAnnouncer.kt
@@ -97,8 +99,8 @@ android/
     ui/home/                         total, last payment, day summary
 ```
 
-`core` stays free of Android imports. `ledger` may be JVM for tests and Android
-for Room; keep the duplicate rules in one place.
+`core` and `ledger` stay free of Android imports. `storage` owns Room; keep the
+duplicate rules in one place.
 
 ## Cross-source dedupe (the new bug)
 
@@ -142,7 +144,7 @@ review.
 | Phase | Work | Acceptance |
 |---|---|---|
 | 0 (done) | Kotlin parser, config, record, 25 tests | `gradlew :core:test` green; 8 sales / ₹5,716 on the corpus |
-| 1 (rules done) | `:ledger` with Room (or in-memory first), same dedupe and daily stats; config loader from assets | 16-message corpus produces the same stats as `ledger.py`; duplicate + undo tests |
+| 1 (storage done) | `:ledger` + `:storage` Room adapter, same dedupe and daily stats; config loader from assets still to do | 16-message corpus produces the same stats as `ledger.py`; duplicate + undo tests; Room close/reopen test |
 | 2 | Notification listener, foreground service, Hindi TTS queue, home screen | 20 real notifications on a phone: correct announcement in under 2 seconds, no overlapping voices |
 | 3 | `foss` SMS flavor, cross-source dedupe, boot restart, OEM battery setup | 72-hour soak on two phones; totals match the bank SMS at end of day; survives reboot |
 | 4 | Onboarding for the two grants, TTS check, undo, day summary (template) | A non-technical person completes setup with one helper in five minutes |
@@ -150,15 +152,18 @@ review.
 | 6 | Signed release APK, checksum, install guide, privacy note | APK installs on a clean phone and runs with Wi-Fi and mobile data off |
 
 Part-time estimate: **5-6 weeks**. Full-time: about **3 weeks**. Phase 0 took a
-day; the device testing in phases 2-3 is what usually slips.
+day and the Room storage took another; the device testing in phases 2-3 is what
+usually slips.
 
 ## Testing
 
-- **JVM:** parser, ledger, summary guards. The Python suite remains the oracle;
-  change both in one commit.
+- **JVM:** parser, ledger and summary guards. The Python suite remains the
+  oracle; change both in one commit.
 - **Golden corpus:** `sample_sms.txt` is the shared fixture. Keep the expected
   8 / ₹5,716 assertion in both languages.
-- **Instrumented:** Room migrations, notification parsing from saved
+- **Room under Robolectric:** field round-trip, dedupe across store instances,
+  undo rewrite, and a file database opened again after close. No emulator.
+- **Instrumented:** Room migrations on a device, notification parsing from saved
   `StatusBarNotification` fixtures, service restart after reboot.
 - **Device matrix:** Android 8 Go edition, 11, 13, 14; at least one Xiaomi or
   Vivo plus one Samsung. Cheap phones are the target, not a flagship.
