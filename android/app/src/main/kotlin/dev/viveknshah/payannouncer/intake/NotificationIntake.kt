@@ -1,11 +1,8 @@
 package dev.viveknshah.payannouncer.intake
 
 import dev.viveknshah.payannouncer.ledger.Ledger
-import dev.viveknshah.payannouncer.parser.Parser
 import dev.viveknshah.payannouncer.parser.ParserConfig
 import dev.viveknshah.payannouncer.parser.PaymentRecord
-import java.time.Instant
-import java.time.LocalDateTime
 import java.time.ZoneId
 
 /**
@@ -24,18 +21,14 @@ class NotificationIntake(
     private val zoneId: ZoneId = ZoneId.systemDefault(),
 ) {
 
+    private val textIntake = PaymentIntake(ledger, config, zoneId)
+
     fun ingest(snapshot: NotificationSnapshot): PaymentRecord? {
         if (snapshot.groupSummary) return null
         val sender = senderFor(snapshot) ?: return null
         val body = snapshot.body()
         if (body.isBlank()) return null
-
-        val at = if (snapshot.postedAtMillis > 0) {
-            Instant.ofEpochMilli(snapshot.postedAtMillis).atZone(zoneId).toLocalDateTime()
-        } else {
-            LocalDateTime.now(zoneId)
-        }
-        return ledger.add(Parser.parseSms(sender, body, config, at))
+        return textIntake.ingest(sender, body, snapshot.postedAtMillis)
     }
 
     private fun senderFor(snapshot: NotificationSnapshot): String? {

@@ -78,17 +78,21 @@ from `bills.json`, never from the model.
 - The web page is a simulator for the demo; the real input path is
   `app.py watch` fed by an SMS forwarder.
 
-## Android port (in progress)
+## Android port (v0.2 code-complete)
 
-The parser, ledger rules, Room storage and a notification-listener spike are in
-Kotlin across `:core`, `:ledger`, `:storage` and a debug `:app`, with 55 tests.
-The suite includes the same 16-message corpus and ₹5,716 total as the Python
-demo, a Room close/reopen test, and notification-to-ledger mapping tests. The app
-has a minimal status screen; Hindi TTS, the day summary and the SMS flavor are
-still to build. The spike has not been tested on a phone here. The Python app
-remains the reference implementation.
+The parser, ledger rules, Room storage, notification listener, Hindi TTS,
+template summary, `foss` SMS flavor and watchdog are in Kotlin across `:core`,
+`:ledger`, `:storage` and `:app`, with 68 tests. The suite includes the same
+16-message corpus and ₹5,716 total as the Python demo, Room persistence and
+cross-source dedupe, and Hindi text tests. Signed `play` and `foss` release APKs
+build locally. The app has not been tested on a physical phone here; the
+notification/SMS field test and reboot soak remain the gate. The optional
+on-device summary model is not included. The Python app remains the reference
+implementation.
 
-See [android/README.md](android/README.md) for the module, test and APK commands.
+See [android/README.md](android/README.md) for the module, test and APK commands,
+[docs/install.md](docs/install.md) for installation, and
+[docs/privacy.md](docs/privacy.md) for the data note.
 
 ## Files
 
@@ -103,8 +107,10 @@ See [android/README.md](android/README.md) for the module, test and APK commands
 | `app.py` | `demo`, `ingest`, `watch`, `serve`, `summary`, `undo` |
 | `lang_hi.json` | Hindi templates and voice config |
 | `test_suite.py` | 41 tests |
-| `android/` | Kotlin parser + ledger + Room storage + notification spike (`:core`, `:ledger`, `:storage`, `:app`; 55 tests) |
-| `docs/android-roadmap.md` | Plan for the on-phone app |
+| `android/` | Kotlin parser + ledger + Room storage + notification/SMS app (`:core`, `:ledger`, `:storage`, `:app`; 68 tests) |
+| `docs/android-roadmap.md` | Plan and status for the on-phone app |
+| `docs/install.md` | Sideload and permission guide |
+| `docs/privacy.md` | What the Android app reads and stores |
 
 `README.txt` keeps the original plain-text walkthrough, including the full
 Windows/Piper setup and the verification checklist.

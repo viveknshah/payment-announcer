@@ -17,3 +17,11 @@ venv/
 
 # Local env
 .env
+
+# Signing material — never commit
+*.jks
+*.keystore
+keystore.properties
+
+# Local release artifacts (upload to GitHub Releases instead)
+dist/

@@ -9,3 +9,8 @@ local.properties
 captures/
 .externalNativeBuild/
 .cxx/
+
+# Release signing material and local artifacts
+keystore/
+keystore.properties
+dist/

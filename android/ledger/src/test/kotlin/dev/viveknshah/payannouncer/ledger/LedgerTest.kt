@@ -56,6 +56,91 @@ class LedgerTest {
     }
 
     @Test
+    fun crossSourceDuplicateWithinWindowIsCountedOnce() {
+        val ledger = Ledger(crossSourceWindowSeconds = 120)
+        val bank = parse("VK-BOBSMS", BOB_3)
+        val app = parse(
+            "GPAY",
+            "₹34.00 received from Ravi",
+            at = LocalDateTime.of(2026, 10, 20, 10, 16),
+        )
+
+        val first = ledger.add(bank)
+        val second = ledger.add(app)
+
+        assertFalse(first.duplicate)
+        assertTrue(second.duplicate)
+        assertTrue(second.needsReview)
+        assertTrue(second.dedupeUncertain)
+        assertEquals("cross_source_duplicate", second.reason)
+        assertEquals(1, ledger.dailyStats(day).count)
+        assertEquals(1, ledger.dailyStats(day).duplicateCount)
+    }
+
+    @Test
+    fun crossSourceConflictingReferencesAreNotMerged() {
+        val ledger = Ledger(crossSourceWindowSeconds = 120)
+        ledger.add(parse("VK-BOBSMS", BOB_3))
+        val app = parse(
+            "GPAY",
+            "₹34.00 received from Ravi (UPI 200000000002)",
+            at = LocalDateTime.of(2026, 10, 20, 10, 16),
+        )
+
+        val second = ledger.add(app)
+
+        assertFalse(second.duplicate)
+        assertEquals(2, ledger.dailyStats(day).count)
+    }
+
+    @Test
+    fun crossSourceWindowIsOffByDefault() {
+        val ledger = Ledger()
+        ledger.add(parse("VK-BOBSMS", BOB_3))
+        val app = parse(
+            "GPAY",
+            "₹34.00 received from Ravi",
+            at = LocalDateTime.of(2026, 10, 20, 10, 16),
+        )
+
+        val second = ledger.add(app)
+
+        assertFalse(second.duplicate)
+        assertEquals(2, ledger.dailyStats(day).count)
+    }
+
+    @Test
+    fun crossSourceAmbiguityFlagsAllCandidatesWithoutMerging() {
+        val ledger = Ledger(crossSourceWindowSeconds = 120)
+        ledger.add(parse("VK-BOBSMS", BOB_3))
+        ledger.add(
+            parse(
+                "VK-BOBSMS",
+                "Rs.34.00 credited to A/c XX0000 on 20-10-2026 10:16 " +
+                    "from VPA ravi.k@upi (UPI 300000000003)",
+                at = LocalDateTime.of(2026, 10, 20, 10, 16),
+            ),
+        )
+        val app = parse(
+            "GPAY",
+            "₹34.00 received from Ravi",
+            at = LocalDateTime.of(2026, 10, 20, 10, 16),
+        )
+
+        val stored = ledger.add(app)
+
+        assertFalse(stored.duplicate)
+        assertTrue(stored.needsReview)
+        assertEquals("cross_source_ambiguous", stored.reason)
+        assertEquals(3, ledger.dailyStats(day).reviewCount)
+        assertTrue(
+            ledger.allRecords()
+                .filter { it.source == "bank_sms" }
+                .all { it.reason.contains("cross_source_ambiguous") },
+        )
+    }
+
+    @Test
     fun statsExcludeDecoysAndDuplicates() {
         val ledger = Ledger()
         ledger.add(parse("VK-BOBSMS", BOB_1))
@@ -206,5 +291,8 @@ class LedgerTest {
                 "from VPA ravi.k@upi (UPI 100000000001)"
         const val BOB_2 =
             "Rs. 37.00 credited to A/c XX0000 on 20-10-2026 17:13. Avl Bal: Rs.10,000.00"
+        const val BOB_3 =
+            "Credit Alert! Rs.34.00 credited to Bank of Baroda A/c XX0000 on 20-10-2026 " +
+                "10:15 from VPA ravi.k@upi (UPI 100000000001)"
     }
 }

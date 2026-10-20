@@ -1,10 +1,13 @@
 package dev.viveknshah.payannouncer.ledger
 
 import dev.viveknshah.payannouncer.parser.PaymentRecord
+import dev.viveknshah.payannouncer.parser.PaymentSource
 import dev.viveknshah.payannouncer.parser.PaymentStatus
+import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeParseException
+import kotlin.math.abs
 
 /**
  * Storage seam for the ledger.
@@ -51,6 +54,12 @@ class InMemoryLedgerStore : LedgerStore {
  */
 class Ledger(
     private val store: LedgerStore = InMemoryLedgerStore(),
+    /**
+     * Cross-source window in seconds. Zero keeps the Python parity rules
+     * unchanged; the app sets 120 seconds so a bank SMS and the matching
+     * payment-app notification are counted once.
+     */
+    private val crossSourceWindowSeconds: Long = 0,
 ) {
 
     fun allRecords(): List<PaymentRecord> = store.all()
@@ -61,6 +70,11 @@ class Ledger(
      * Only credited sales and refunds participate in dedupe. A repeat is kept
      * in the ledger for the audit trail, but marked [PaymentRecord.duplicate]
      * and [PaymentRecord.needsReview].
+     *
+     * With [crossSourceWindowSeconds] > 0, a credit/refund of the same amount
+     * from a different source inside the window is treated as the same payment
+     * when exactly one candidate exists and the references do not conflict.
+     * Two candidates are not merged: both are flagged for review instead.
      */
     fun add(record: PaymentRecord): PaymentRecord {
         var stored = record
@@ -69,12 +83,54 @@ class Ledger(
                 stored = record.copy(
                     duplicate = true,
                     needsReview = true,
-                    reason = if (record.reason.isEmpty()) {
-                        "duplicate"
-                    } else {
-                        "${record.reason};duplicate"
-                    },
+                    reason = appendReason(record.reason, "duplicate"),
                 )
+            } else if (crossSourceWindowSeconds > 0 && record.isCounted()) {
+                val candidates = store.all().filter { candidate ->
+                    candidate.isCounted() &&
+                        candidate.status == record.status &&
+                        candidate.source != record.source &&
+                        candidate.source != PaymentSource.UNKNOWN &&
+                        record.source != PaymentSource.UNKNOWN &&
+                        candidate.amountPaise == record.amountPaise &&
+                        withinCrossSourceWindow(candidate, record) &&
+                        !referencesConflict(candidate, record)
+                }
+
+                when (candidates.size) {
+                    1 -> {
+                        stored = record.copy(
+                            duplicate = true,
+                            needsReview = true,
+                            dedupeUncertain = true,
+                            reason = appendReason(record.reason, "cross_source_duplicate"),
+                        )
+                    }
+
+                    in 2..Int.MAX_VALUE -> {
+                        // Do not drop money on a guess. Keep the new record and
+                        // mark every candidate so the stall can check the books.
+                        stored = record.copy(
+                            needsReview = true,
+                            reason = appendReason(record.reason, "cross_source_ambiguous"),
+                        )
+                        store.rewrite(
+                            store.all().map { existing ->
+                                if (candidates.any { it == existing }) {
+                                    existing.copy(
+                                        needsReview = true,
+                                        reason = appendReason(
+                                            existing.reason,
+                                            "cross_source_ambiguous",
+                                        ),
+                                    )
+                                } else {
+                                    existing
+                                }
+                            },
+                        )
+                    }
+                }
             }
         }
         store.append(stored)
@@ -107,6 +163,30 @@ class Ledger(
     /** Stats for one day, using the same rules as `ledger.daily_stats`. */
     fun dailyStats(date: LocalDate = LocalDate.now()): DailyStats =
         LedgerStats.compute(dayRecords(date))
+
+    private fun withinCrossSourceWindow(a: PaymentRecord, b: PaymentRecord): Boolean {
+        val first = parseTimestamp(a.timestamp) ?: return false
+        val second = parseTimestamp(b.timestamp) ?: return false
+        return abs(Duration.between(first, second).seconds) <= crossSourceWindowSeconds
+    }
+
+    private fun referencesConflict(a: PaymentRecord, b: PaymentRecord): Boolean {
+        val first = a.txnId?.trim().orEmpty()
+        val second = b.txnId?.trim().orEmpty()
+        return first.isNotEmpty() && second.isNotEmpty() && first != second
+    }
+
+    private fun parseTimestamp(value: String): LocalDateTime? = try {
+        LocalDateTime.parse(value)
+    } catch (_: DateTimeParseException) {
+        null
+    }
+
+    private fun appendReason(reason: String, code: String): String = when {
+        reason.isEmpty() -> code
+        reason.split(';').contains(code) -> reason
+        else -> "$reason;$code"
+    }
 }
 
 /**

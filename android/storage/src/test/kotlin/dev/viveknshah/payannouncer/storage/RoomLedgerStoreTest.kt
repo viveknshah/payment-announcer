@@ -99,6 +99,32 @@ class RoomLedgerStoreTest {
     }
 
     @Test
+    fun crossSourceDedupeWorksThroughRoom() {
+        val ledger = Ledger(store, crossSourceWindowSeconds = 120)
+        ledger.add(
+            Parser.parseSms(
+                "VK-BOBSMS",
+                BOB_3,
+                config,
+                LocalDateTime.of(2026, 10, 20, 10, 15),
+            ),
+        )
+        val app = Parser.parseSms(
+            "GPAY",
+            "₹34.00 received from Ravi",
+            config,
+            LocalDateTime.of(2026, 10, 20, 10, 16),
+        )
+
+        val stored = ledger.add(app)
+
+        assertTrue(stored.duplicate)
+        assertEquals("cross_source_duplicate", stored.reason)
+        assertEquals(2, store.all().size)
+        assertEquals(1, ledger.dailyStats(day).count)
+    }
+
+    @Test
     fun excludedRowsDoNotBlockARealCountedKey() {
         val ledger = Ledger(store)
         val failed = "Payment of Rs. 90 failed. Please retry."
@@ -150,5 +176,8 @@ class RoomLedgerStoreTest {
                 "from VPA ravi.k@upi (UPI 100000000001)"
         const val REFUND =
             "Refund of Rs. 45.00 credited to your account. UPI Ref No: 555666777888."
+        const val BOB_3 =
+            "Credit Alert! Rs.34.00 credited to Bank of Baroda A/c XX0000 on 20-10-2026 " +
+                "10:15 from VPA ravi.k@upi (UPI 100000000001)"
     }
 }

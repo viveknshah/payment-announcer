@@ -5,13 +5,12 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import dev.viveknshah.payannouncer.AppGraph
-import dev.viveknshah.payannouncer.config.ConfigLoader
 import java.util.concurrent.Executors
 
 /**
- * First on-phone intake path. It ignores everything except the small package
+ * On-phone intake path. It ignores everything except the small package
  * allowlist in [NotificationIntake] and runs ledger work on one background
- * thread so announcements cannot interleave (voice comes next).
+ * thread, then hands the stored record to the latest-wins Hindi speaker.
  */
 class NotificationIntakeService : NotificationListenerService() {
 
@@ -21,8 +20,7 @@ class NotificationIntakeService : NotificationListenerService() {
     override fun onCreate() {
         super.onCreate()
         intake = try {
-            val config = ConfigLoader.load(assets.open("config.json"))
-            NotificationIntake(AppGraph.ledger(this), config)
+            NotificationIntake(AppGraph.ledger(this), AppGraph.config(this))
         } catch (e: Exception) {
             Log.e(TAG, "Could not start notification intake", e)
             null
@@ -34,7 +32,8 @@ class NotificationIntakeService : NotificationListenerService() {
         val processor = intake ?: return
         worker.execute {
             try {
-                processor.ingest(snapshot)
+                val record = processor.ingest(snapshot)
+                if (record != null) AppGraph.speech(this).announce(record)
             } catch (e: Exception) {
                 Log.e(TAG, "Notification intake failed", e)
             }
