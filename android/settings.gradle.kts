@@ -7,3 +7,4 @@ pluginManagement {
 
 rootProject.name = "payannouncer-android"
 include(":core")
+include(":ledger")

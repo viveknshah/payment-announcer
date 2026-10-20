@@ -80,11 +80,12 @@ from `bills.json`, never from the model.
 
 ## Android port (in progress)
 
-The parser is ported to Kotlin as a pure-JVM `:core` module with 25 tests,
-including the same 16-message corpus and ₹5,716 total as the Python demo. There
-is no Android app yet: the notification listener, Room ledger, Hindi TTS and UI
-are planned in [docs/android-roadmap.md](docs/android-roadmap.md). The Python
-app remains the reference implementation.
+The parser and ledger rules are ported to Kotlin as pure-JVM `:core` and
+`:ledger` modules with 35 tests, including the same 16-message corpus and ₹5,716
+total as the Python demo. There is no Android app yet: the Room adapter,
+notification listener, Hindi TTS and UI are planned in
+[docs/android-roadmap.md](docs/android-roadmap.md). The Python app remains the
+reference implementation.
 
 See [android/README.md](android/README.md) for the module and test commands.
 
@@ -101,7 +102,7 @@ See [android/README.md](android/README.md) for the module and test commands.
 | `app.py` | `demo`, `ingest`, `watch`, `serve`, `summary`, `undo` |
 | `lang_hi.json` | Hindi templates and voice config |
 | `test_suite.py` | 41 tests |
-| `android/` | Kotlin parser port (`:core`, 25 JVM tests) |
+| `android/` | Kotlin parser + ledger port (`:core`, `:ledger`; 35 JVM tests) |
 | `docs/android-roadmap.md` | Plan for the on-phone app |
 
 `README.txt` keeps the original plain-text walkthrough, including the full

@@ -4,9 +4,10 @@ The Week 3 submission is the Python demo. This document is the plan for the
 thing she can actually keep in her pocket: an Android app that hears the
 payment, says it out loud in Hindi, and closes the day without a laptop.
 
-Status today: **step 0 is done**. The parser is ported to Kotlin and pinned by
-25 JVM tests that read the same 16-message corpus as the Python demo
-(8 counted, ₹5,716). Everything below is still to build.
+Status today: **step 0 is done, and step 1's rules are done in memory**. The
+parser and ledger are ported to Kotlin and pinned by 35 JVM tests that read the
+same 16-message corpus as the Python demo (8 counted, ₹5,716). The Room adapter,
+config loader and everything on the phone are still to build.
 
 ## Target architecture
 
@@ -85,11 +86,11 @@ A summary is a nice-to-have. The announcement is the product.
 ```
 android/
   core/                     done: parser, config, record, 25 tests
-  ledger/                   Room entities, DAO, dedupe, daily stats
+  ledger/                   done: in-memory dedupe + daily stats, 10 tests
   app/
+    data/RoomLedger.kt               adapter behind LedgerStore (next)
     intake/NotificationIntakeService.kt
     intake/SmsReceiver.kt            (foss flavor)
-    data/RoomLedger.kt
     voice/HindiAnnouncer.kt
     summary/SummaryEngine.kt         template + optional model
     ui/onboarding/                   notification access, battery, TTS check
@@ -141,7 +142,7 @@ review.
 | Phase | Work | Acceptance |
 |---|---|---|
 | 0 (done) | Kotlin parser, config, record, 25 tests | `gradlew :core:test` green; 8 sales / ₹5,716 on the corpus |
-| 1 | `:ledger` with Room (or in-memory first), same dedupe and daily stats; config loader from assets | 16-message corpus produces the same stats as `ledger.py`; duplicate + undo tests |
+| 1 (rules done) | `:ledger` with Room (or in-memory first), same dedupe and daily stats; config loader from assets | 16-message corpus produces the same stats as `ledger.py`; duplicate + undo tests |
 | 2 | Notification listener, foreground service, Hindi TTS queue, home screen | 20 real notifications on a phone: correct announcement in under 2 seconds, no overlapping voices |
 | 3 | `foss` SMS flavor, cross-source dedupe, boot restart, OEM battery setup | 72-hour soak on two phones; totals match the bank SMS at end of day; survives reboot |
 | 4 | Onboarding for the two grants, TTS check, undo, day summary (template) | A non-technical person completes setup with one helper in five minutes |

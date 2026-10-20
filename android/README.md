@@ -1,23 +1,25 @@
 # Android core (Kotlin)
 
-This module is the first step of the Android port: the SMS parser, moved from
-Python to dependency-free Kotlin and pinned to the same tests.
+This directory is the first step of the Android port: the SMS parser and the
+ledger rules, moved from Python to dependency-free Kotlin and pinned to the same
+tests.
 
-**Status: parser only.** There is no Android app, notification listener, voice
-or UI here yet. Those are planned in
+**Status: parser and in-memory ledger only.** There is no Android app,
+notification listener, voice or UI here yet. Those are planned in
 [`../docs/android-roadmap.md`](../docs/android-roadmap.md).
 
-## Why a separate `:core` module
+## Why separate JVM modules
 
-The parser is pure Kotlin/JVM. Keeping it out of the Android module means:
+The parser and ledger are pure Kotlin/JVM. Keeping them out of the Android
+module means:
 
-- the 25 tests run in milliseconds on a laptop, with no emulator;
+- the 35 tests run in milliseconds on a laptop, with no emulator;
 - the Python app stays the reference implementation and can be diffed against
   the Kotlin output;
-- the later Android app depends on `:core` instead of copying rules into an
-  Activity.
+- the later Android app depends on `:core` and `:ledger` instead of copying
+  rules into an Activity.
 
-No Android SDK is needed to build or test this module.
+No Android SDK is needed to build or test these modules.
 
 ## Run the tests
 
@@ -25,14 +27,15 @@ From `android/`:
 
 ```bash
 # Windows
-gradlew.bat :core:test
+gradlew.bat test
 
 # macOS / Linux
-./gradlew :core:test
+./gradlew test
 ```
 
-The Gradle wrapper downloads Gradle 8.10.2 and JUnit 4.13.2 on first run. A
-JDK 17 or newer must be on `JAVA_HOME` (Android Studio ships one).
+Use `:core:test` or `:ledger:test` for one module. The Gradle wrapper downloads
+Gradle 8.10.2 and JUnit 4.13.2 on first run. A JDK 17 or newer must be on
+`JAVA_HOME` (Android Studio ships one).
 
 The corpus test reads `../../sample_sms.txt`, the same 16 messages as
 `python app.py demo`, and asserts:
@@ -76,12 +79,30 @@ check(record.dedupeKey == "amt:3700@2026-10-20 17:13")
 load the stall's real `config.json` (or a typed equivalent) from assets and pass
 it in. The parser never reads files or the network.
 
+The ledger keeps the same duplicate rules as `ledger.py`:
+
+```kotlin
+import dev.viveknshah.payannouncer.ledger.Ledger
+
+val ledger = Ledger()                 // InMemoryLedgerStore by default
+ledger.add(record)
+val stats = ledger.dailyStats()       // today, local date
+check(stats.count == 1)
+check(stats.totalPaise == 3_700L)
+```
+
+`LedgerStore` is the storage seam. The app will provide a Room-backed
+implementation; dedupe, undo and daily stats stay in `:ledger` and are tested
+without Android.
+
 ## Parity contract
 
 - `PaymentRecord` field names map 1:1 to `sms_parser.PaymentRecord` (snake_case
   in Python, camelCase in Kotlin).
 - Status and source strings are identical.
 - The id is the same SHA-1 prefix when both sides receive the same `now`.
+- `DailyStats` mirrors `daily_stats`: count, total, average, busiest hour,
+  largest, refunds, review count and duplicate count.
 - The Python suite (`python test_suite.py`) and this suite must be changed in
   the same commit. The corpus totals are the shared contract.
 
@@ -102,12 +123,19 @@ android/
       ParserTest.kt
     src/test/resources/
       sample_expected.tsv
+  ledger/
+    build.gradle.kts
+    src/main/kotlin/dev/viveknshah/payannouncer/ledger/
+      Ledger.kt
+    src/test/kotlin/dev/viveknshah/payannouncer/ledger/
+      LedgerTest.kt
   tools/
     export_parser_golden.py
 ```
 
 ## Next
 
-`docs/android-roadmap.md` has the build order. The next code step is a `:ledger`
-module (Room, or an in-memory store for tests) that applies the same duplicate
-rules as `ledger.py`, followed by the notification listener spike.
+`docs/android-roadmap.md` has the build order. The next code step is the Room
+adapter behind `LedgerStore`, then the notification listener spike. The Room
+adapter is what makes the ledger survive a phone reboot; the rules are already
+tested here.
