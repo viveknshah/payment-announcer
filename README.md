@@ -22,7 +22,7 @@ install, no cloud, no account numbers or OTPs ever spoken.
 ## Try it
 
 ```bash
-python app.py demo          # 18 sample SMS, 8 counted, spoken aloud
+python app.py demo          # 16 sample SMS, 8 counted, spoken aloud
 python app.py serve         # phone-frame UI on http://localhost:8000
 python test_suite.py        # 41 unit tests, no network needed
 ```
@@ -30,6 +30,12 @@ python test_suite.py        # 41 unit tests, no network needed
 The web page has sample messages to click and a box to paste any SMS. In real
 use the same parser is fed by `python app.py watch`, which reads SMS from stdin
 (what an SMS forwarder would pipe in).
+
+## Screenshots
+
+![Phone frame with a large payment announced](docs/phone-frame.png)
+
+![A failed payment is shown as not counted](docs/not-counted.png)
 
 ## Setup
 

@@ -21,34 +21,6 @@ WHAT YOU NEED
 - Works the same on Windows, macOS and Linux. Tested on Python 3.10.
 
 
-FILE MAP - one flat folder, rename after download
--------------------------------------------------
-Put ALL files in a single new folder, e.g. payannouncer/
-Files were sent with .txt added so they download cleanly. Strip the
-trailing .txt from each name (sample_sms.txt and README.txt stay as-is):
-
-  app.py.txt          -> app.py           (CLI entry point)
-  server.py.txt       -> server.py        (phone-frame web demo)
-  index.html.txt      -> index.html       (web demo page)
-  sms_parser.py.txt   -> sms_parser.py    (the parser)
-  ledger.py.txt       -> ledger.py        (store, dedupe, daily stats)
-  announcer.py.txt    -> announcer.py     (Piper / OS voice / text)
-  summarizer.py.txt   -> summarizer.py    (Gemma via Ollama + fallback)
-  langpack.py.txt     -> langpack.py      (language pack loader)
-  test_suite.py.txt   -> test_suite.py    (41 unit tests)
-  config.json.txt     -> config.json      (senders, threshold, models)
-  lang_hi.json.txt    -> lang_hi.json     (Hindi pack, complete)
-  lang_en.json.txt    -> lang_en.json     (English pack, template stub)
-  lang_kn.json.txt    -> lang_kn.json     (Kannada pack, template stub)
-  bills.json.txt      -> bills.json       (fictional bills - edit me)
-  sample_sms.txt                          (fictional SMS corpus)
-  README.txt                              (this file)
-
-On Windows, rename in File Explorer (enable "File name extensions" in
-the View menu first) or run this in the folder:
-  ren *.py.txt *.py & ren *.json.txt *.json & ren index.html.txt index.html
-
-
 QUICK START (5 minutes, no downloads)
 -------------------------------------
   cd payannouncer

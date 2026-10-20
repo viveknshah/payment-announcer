@@ -1,5 +1,5 @@
 {
-  "_comment": "Copy this file to bills.json and edit it with the stall's real bills. Amounts in paise (Rs 500 = 50000). The end-of-day summary lists bills due within 7 days.",
+  "_comment": "Edit this file with the stall's real bills. Amounts in paise (Rs 500 = 50000). The end-of-day summary lists bills due within 7 days.",
   "bills": [
     {"name": "Milk supplier", "amount_paise": 120000, "due": "2026-10-22"},
     {"name": "Electricity", "amount_paise": 45000, "due": "2026-10-25"},
