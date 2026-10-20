@@ -78,6 +78,16 @@ from `bills.json`, never from the model.
 - The web page is a simulator for the demo; the real input path is
   `app.py watch` fed by an SMS forwarder.
 
+## Android port (in progress)
+
+The parser is ported to Kotlin as a pure-JVM `:core` module with 25 tests,
+including the same 16-message corpus and ₹5,716 total as the Python demo. There
+is no Android app yet: the notification listener, Room ledger, Hindi TTS and UI
+are planned in [docs/android-roadmap.md](docs/android-roadmap.md). The Python
+app remains the reference implementation.
+
+See [android/README.md](android/README.md) for the module and test commands.
+
 ## Files
 
 | File | Purpose |
@@ -91,6 +101,8 @@ from `bills.json`, never from the model.
 | `app.py` | `demo`, `ingest`, `watch`, `serve`, `summary`, `undo` |
 | `lang_hi.json` | Hindi templates and voice config |
 | `test_suite.py` | 41 tests |
+| `android/` | Kotlin parser port (`:core`, 25 JVM tests) |
+| `docs/android-roadmap.md` | Plan for the on-phone app |
 
 `README.txt` keeps the original plain-text walkthrough, including the full
 Windows/Piper setup and the verification checklist.

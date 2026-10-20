@@ -1,0 +1,17 @@
+sender	status	amount_paise	payer	txn_id	timestamp	source	needs_review	large	dedupe_key	dedupe_uncertain	reason	id
+VK-BOBSMS	credited	3400	ravi.k@upi	100000000001	2026-10-20T12:00:00	bank_sms	false	false	ref:100000000001	false		a31cb0e9
+VK-BOBSMS	credited	3700			2026-10-20T17:13:00	bank_sms	false	false	amt:3700@2026-10-20 17:13	true		10c0ea43
+AX-PAYTMB	credited	15000	Rahul	123456789012	2026-10-20T10:05:00	paytm_business	false	false	ref:123456789012	false		c04e77fb
+VK-HDFCBK	credited	8000		987654321012	2026-10-20T10:20:00	bank_sms	false	false	ref:987654321012	false		ef507c1e
+AX-ICICIB	credited	25000		456789123012	2026-10-20T10:45:00	bank_sms	false	false	ref:456789123012	false		e6ddaa59
+AX-PAYTMB	credited	4500			2026-10-20T11:10:00	paytm_business	false	false	amt:4500@2026-10-20 11:10	true		79c66027
+VK-SBISMS	credited	12000		223456789012	2026-10-20T11:30:00	bank_sms	false	false	ref:223456789012	false		c64710e1
+AX-PAYTMB	excluded	50000			2026-10-20T12:00:00	paytm_business	false	false	amt:50000@2026-10-20 12:00	true	payment_request	b0f60176
+VK-BOBSMS	excluded	6000			2026-10-20T12:00:00	bank_sms	false	false	amt:6000@2026-10-20 12:00	true	outgoing_money	f1980f42
+AX-PAYTMB	excluded	9000			2026-10-20T12:20:00	paytm_business	false	false	amt:9000@2026-10-20 12:20	true	failed_payment	f79086da
+AX-PAYTMB	refund	4500			2026-10-20T12:30:00	paytm_business	false	false	amt:4500@2026-10-20 12:30	true	refund_recorded_separately	5e850425
+VK-BOBSMS	excluded	0			2026-10-20T12:40:00	bank_sms	false	false	amt:None@2026-10-20 12:40	true	otp_message	dc120304
+9876543210	review	0			2026-10-20T12:50:00	unknown	true	false	amt:None@2026-10-20 12:50	true	sender_not_in_allowlist	e79f73dd
+AX-PAYTMB	credited	500000	Suresh	999888777666	2026-10-20T13:00:00	paytm_business	false	true	ref:999888777666	false		e8434995
+VK-BOBSMS	credited	3400	ravi.k@upi	100000000001	2026-10-20T12:00:00	bank_sms	false	false	ref:100000000001	false		2268f116
+VK-BOBSMS	credited	3700			2026-10-20T17:13:00	bank_sms	false	false	amt:3700@2026-10-20 17:13	true		fcb84857
