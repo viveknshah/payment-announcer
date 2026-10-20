@@ -1,0 +1,37 @@
+{
+  "code": "en",
+  "name": "English",
+  "template_fallback": true,
+  "_note": "Stub pack: template mode only, no LLM summary. Full English support is trivial to extend by setting template_fallback to false.",
+  "llm_locale": "English",
+  "tts": {
+    "engine": "piper",
+    "model_file": "en_US-lessac-medium.onnx"
+  },
+  "templates": {
+    "announce_payer": "₹{amount} received from {payer}",
+    "announce_no_payer": "₹{amount} received",
+    "verify_large": "Large amount. Please verify in your bank app.",
+    "refund_line": "Refund of ₹{amount} recorded. Not counted as sales.",
+    "review_line": "This message was not counted automatically. Please check. Reason: {reason}",
+    "duplicate_line": "This payment was already counted.",
+    "summary_empty": "No payments recorded today.",
+    "summary_line": "Today: {count} payments received, ₹{total} total. Average payment ₹{average}. Busiest hour {busiest}.",
+    "bills_header": "Upcoming bills:",
+    "bills_line": "{name} ₹{amount}, due {due}",
+    "bills_none": "No bills due this week.",
+    "not_available": "n/a",
+    "undo_done": "Removed last sale: ₹{amount}",
+    "undo_none": "No sale to remove.",
+    "reason_payment_request": "this is a payment request, not a receipt",
+    "reason_failed_payment": "payment failed",
+    "reason_outgoing_money": "money went out, not in",
+    "reason_otp_message": "OTP message, never spoken",
+    "reason_contains_link": "message contains a link, be careful",
+    "reason_sender_not_in_allowlist": "unrecognised sender",
+    "reason_unknown_sender": "unrecognised sender",
+    "reason_no_credit_evidence": "no clear proof of a received payment",
+    "reason_duplicate": "duplicate message",
+    "reason_no_amount_found": "no amount found"
+  }
+}

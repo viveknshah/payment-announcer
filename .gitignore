@@ -1,0 +1,19 @@
+# Runtime data — not source
+ledger.jsonl
+state.json
+serve-out.txt
+serve-err.txt
+*.wav
+
+# Downloaded binaries and voices (see README: Piper setup)
+piper/
+voices/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Local env
+.env

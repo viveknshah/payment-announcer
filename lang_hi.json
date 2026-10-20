@@ -1,0 +1,36 @@
+{
+  "code": "hi",
+  "name": "Hindi",
+  "template_fallback": false,
+  "llm_locale": "Hindi (Devanagari script)",
+  "tts": {
+    "engine": "piper",
+    "model_file": "hi_IN-pratham-medium.onnx"
+  },
+  "templates": {
+    "announce_payer": "{payer} से ₹{amount} प्राप्त हुए",
+    "announce_no_payer": "₹{amount} प्राप्त हुए",
+    "verify_large": "बड़ी रकम है। कृपया बैंक ऐप में जाँच करें।",
+    "refund_line": "₹{amount} का रिफंड दर्ज हुआ। यह बिक्री में नहीं जुड़ेगा।",
+    "review_line": "यह संदेश अपने आप नहीं गिना गया। कृपया जाँचें। कारण: {reason}",
+    "duplicate_line": "यह भुगतान पहले ही गिना जा चुका है।",
+    "summary_empty": "आज कोई भुगतान दर्ज नहीं हुआ।",
+    "summary_line": "आज {count} भुगतान मिले, कुल ₹{total}। औसत भुगतान ₹{average}। सबसे व्यस्त समय {busiest} बजे।",
+    "bills_header": "आगामी बिल:",
+    "bills_line": "{name} ₹{amount}, तारीख {due}",
+    "bills_none": "इस हफ्ते कोई बिल देय नहीं है।",
+    "not_available": "उपलब्ध नहीं",
+    "undo_done": "आखिरी बिक्री हटा दी गई: ₹{amount}",
+    "undo_none": "हटाने के लिए कोई बिक्री नहीं।",
+    "reason_payment_request": "यह भुगतान का अनुरोध है, प्राप्ति नहीं",
+    "reason_failed_payment": "भुगतान विफल हुआ",
+    "reason_outgoing_money": "पैसा गया है, आया नहीं",
+    "reason_otp_message": "OTP संदेश, कभी बोलना नहीं",
+    "reason_contains_link": "संदेश में लिंक है, सावधान रहें",
+    "reason_sender_not_in_allowlist": "अज्ञात भेजने वाला",
+    "reason_unknown_sender": "अज्ञात भेजने वाला",
+    "reason_no_credit_evidence": "भुगतान मिलने का पक्का प्रमाण नहीं",
+    "reason_duplicate": "दोहरा संदेश",
+    "reason_no_amount_found": "रकम नहीं मिली"
+  }
+}

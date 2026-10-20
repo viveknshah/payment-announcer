@@ -1,0 +1,33 @@
+# Sample SMS corpus for the demo. Format: SENDER | BODY
+#     or with an explicit ingest time: SENDER | YYYY-MM-DD HH:MM | BODY
+# Lines starting with # are comments. Blank lines are ignored.
+#
+# ALL VALUES BELOW ARE FICTIONAL. The two Bank of Baroda formats match real
+# bank SMS layouts, but every name, account, reference and amount is fake.
+# Never put a real SMS in this file.
+
+# --- Real-world templates (Bank of Baroda layouts, anonymised values) ---
+VK-BOBSMS | 2026-10-20 09:15 | Credit Alert! Rs.34.00 credited to Bank of Baroda A/c XX0000 on 20-10-26 from VPA ravi.k@upi (UPI 100000000001)
+VK-BOBSMS | 2026-10-20 09:40 | Rs. 37.00 credited to A/c XX0000 on 20-10-2026 17:13. Avl Bal: Rs.10,000.00
+
+# --- Fictional illustrative formats (not verified templates - test fixtures only) ---
+AX-PAYTMB | 2026-10-20 10:05 | You have received ₹150 from Rahul via UPI. Transaction ID: 123456789012.
+VK-HDFCBK | 2026-10-20 10:20 | Payment of Rs. 80 received successfully. UPI Ref No: 987654321012.
+AX-ICICIB | 2026-10-20 10:45 | ₹250 credited to your account through UPI. Ref: 456789123012.
+AX-PAYTMB | 2026-10-20 11:10 | You received a payment of ₹45.00. Status: Successful.
+VK-SBISMS | 2026-10-20 11:30 | Your account has been credited with INR 120.00. UPI transaction reference: 223456789012.
+
+# --- Decoys: the parser must NOT count these as sales ---
+AX-PAYTMB | 2026-10-20 12:00 | You have requested ₹500 from Ramesh via UPI. Awaiting approval.
+VK-BOBSMS | 2026-10-20 12:10 | Rs. 60.00 debited from A/c XX0000 on 20-10-2026. Avl Bal: Rs.9,940.00
+AX-PAYTMB | 2026-10-20 12:20 | Payment of Rs. 90 failed. Please retry.
+AX-PAYTMB | 2026-10-20 12:30 | Refund of Rs. 45.00 credited to your account. UPI Ref No: 555666777888.
+VK-BOBSMS | 2026-10-20 12:40 | Your OTP for transaction of Rs. 200 is 123456. Do not share it with anyone.
+9876543210 | 2026-10-20 12:50 | Hi! Rs. 500 credited to your wallet. Claim now at http://paytm-cashback.example.com
+
+# --- Large payment: counts, but adds a "verify in your bank app" warning ---
+AX-PAYTMB | 2026-10-20 13:00 | You have received ₹5,000 from Suresh via UPI. Transaction ID: 999888777666.
+
+# --- Duplicates: the parser must flag these and count only once ---
+VK-BOBSMS | 2026-10-20 13:10 | Credit Alert! Rs.34.00 credited to Bank of Baroda A/c XX0000 on 20-10-26 from VPA ravi.k@upi (UPI 100000000001)
+VK-BOBSMS | 2026-10-20 13:15 | Rs. 37.00 credited to A/c XX0000 on 20-10-2026 17:13. Avl Bal: Rs.10,037.00

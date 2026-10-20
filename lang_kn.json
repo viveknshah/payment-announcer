@@ -1,0 +1,30 @@
+{
+  "code": "kn",
+  "name": "Kannada",
+  "template_fallback": true,
+  "_note": "STUB. Template announcements only, no LLM summary. Full Kannada arrives with the Android APK stage (Google Speech Services covers Kannada; Piper does not).",
+  "llm_locale": "Kannada",
+  "tts": {
+    "engine": "android_tts",
+    "model_file": null
+  },
+  "templates": {
+    "announce_payer": "{payer} ಅವರಿಂದ ₹{amount} ಸ್ವೀಕರಿಸಲಾಗಿದೆ",
+    "announce_no_payer": "₹{amount} ಸ್ವೀಕರಿಸಲಾಗಿದೆ",
+    "verify_large": "ದೊಡ್ಡ ಮೊತ್ತ. ದಯವಿಟ್ಟು ಬ್ಯಾಂಕ್ ಆ್ಯಪ್‌ನಲ್ಲಿ ಪರಿಶೀಲಿಸಿ.",
+    "refund_line": "₹{amount} ಮರುಪಾವತಿ ದಾಖಲಾಗಿದೆ. ಮಾರಾಟದಲ್ಲಿ ಸೇರುವುದಿಲ್ಲ.",
+    "review_line": "ಈ ಸಂದೇಶವನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಎಣಿಸಲಾಗಿಲ್ಲ. ದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ.",
+    "duplicate_line": "ಈ ಪಾವತಿಯನ್ನು ಈಗಾಗಲೇ ಎಣಿಸಲಾಗಿದೆ.",
+    "summary_empty": "ಇಂದು ಯಾವುದೇ ಪಾವತಿ ದಾಖಲಾಗಿಲ್ಲ.",
+    "summary_line": "ಇಂದು: {count} ಪಾವತಿಗಳು, ಒಟ್ಟು ₹{total}. ಸರಾಸರಿ ₹{average}.",
+    "bills_header": "ಮುಂಬರುವ ಬಿಲ್‌ಗಳು:",
+    "bills_line": "{name} ₹{amount}, ದಿನಾಂಕ {due}",
+    "bills_none": "ಈ ವಾರ ಯಾವುದೇ ಬಿಲ್ ಬಾಕಿ ಇಲ್ಲ.",
+    "not_available": "ಲಭ್ಯವಿಲ್ಲ",
+    "undo_done": "ಕೊನೆಯ ಮಾರಾಟ ತೆಗೆದುಹಾಕಲಾಗಿದೆ: ₹{amount}",
+    "undo_none": "ತೆಗೆದುಹಾಕಲು ಯಾವುದೇ ಮಾರಾಟವಿಲ್ಲ.",
+    "reason_sender_not_in_allowlist": "ಅಪರಿಚಿತ ಕಳುಹಿಸುವವರು",
+    "reason_unknown_sender": "ಅಪರಿಚಿತ ಕಳುಹಿಸುವವರು",
+    "reason_duplicate": "ನಕಲಿ ಸಂದೇಶ"
+  }
+}
