@@ -42,9 +42,9 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":core"))
-    implementation(project(":ledger"))
-    implementation("androidx.room:room-runtime:2.7.2")
+    api(project(":core"))
+    api(project(":ledger"))
+    api("androidx.room:room-runtime:2.7.2")
     kapt("androidx.room:room-compiler:2.7.2")
 
     testImplementation("junit:junit:4.13.2")

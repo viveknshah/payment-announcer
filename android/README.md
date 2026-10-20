@@ -1,31 +1,33 @@
-# Android core (Kotlin)
+# Android port (Kotlin)
 
-This directory is the first step of the Android port: the SMS parser, the ledger
-rules and the Room storage adapter, moved from Python to Kotlin and pinned to
-the same tests.
+This directory is the Android port: the SMS parser, ledger rules, Room storage
+and a notification-listener spike, moved from Python to Kotlin and pinned to the
+same tests.
 
-**Status: parser, ledger rules and Room storage.** There is no Android app,
-notification listener, voice or UI here yet. Those are planned in
+**Status: parser, ledger, Room storage and a notification-listener spike.** The
+app has a minimal status screen, but no Hindi voice, end-of-day summary or SMS
+flavor yet. Those are planned in
 [`../docs/android-roadmap.md`](../docs/android-roadmap.md).
 
 ## Modules
 
 | Module | Type | What it holds |
 |---|---|---|
-| `:core` | Kotlin/JVM | parser, config, `PaymentRecord` |
+| `:core` | Kotlin/JVM | parser, config loader, `PaymentRecord` |
 | `:ledger` | Kotlin/JVM | dedupe, undo, daily stats, `LedgerStore` |
 | `:storage` | Android library | Room entities, DAO and `RoomLedgerStore` |
+| `:app` | Android app | notification listener, intake mapping, minimal screen |
 
 Keeping the rules out of the Android module means:
 
-- the 41 tests run on a laptop, with no emulator;
+- the 55 tests run on a laptop, with no emulator;
 - the Python app stays the reference implementation and can be diffed against
   the Kotlin output;
-- the later Android app depends on `:core`, `:ledger` and `:storage` instead of
+- the Android app depends on `:core`, `:ledger` and `:storage` instead of
   copying rules into an Activity.
 
-`:core` and `:ledger` need only a JDK. `:storage` needs the Android SDK because
-Room is an Android library; its tests run on the JVM under Robolectric.
+`:core` and `:ledger` need only a JDK. `:storage` and `:app` need the Android SDK;
+their tests still run on the JVM.
 
 ## Run the tests
 
@@ -39,14 +41,15 @@ gradlew.bat test
 ./gradlew test
 ```
 
-Use `:core:test` or `:ledger:test` for the pure-JVM modules, and
-`:storage:testDebugUnitTest` for the Room adapter (Robolectric, no emulator).
-For a JDK-only run that skips Android, use
-`gradlew :core:test :ledger:test`.
-The Gradle wrapper downloads Gradle 8.10.2, JUnit 4.13.2 and Room 2.7.2 on first
-run. A JDK 17 or newer must be on `JAVA_HOME` (Android Studio ships one).
+Use `:core:test` or `:ledger:test` for the pure-JVM modules,
+`:storage:testDebugUnitTest` for the Room adapter (Robolectric), and
+`:app:testDebugUnitTest` for the notification intake mapping. For a JDK-only run
+that skips Android, use `gradlew :core:test :ledger:test`.
+The Gradle wrapper downloads Gradle 8.10.2, JUnit 4.13.2, Room 2.7.2 and
+kotlinx.serialization on first run. A JDK 17 or newer must be on `JAVA_HOME`
+(Android Studio ships one).
 
-For `:storage`, install Android SDK 35 and point `ANDROID_HOME` at it:
+For `:storage` and `:app`, install Android SDK 35 and point `ANDROID_HOME` at it:
 
 ```bash
 sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
@@ -55,6 +58,16 @@ sdkmanager "platforms;android-35" "build-tools;35.0.0" "platform-tools"
 The first Robolectric run also downloads an Android runtime jar, so it is slower
 than the JVM-only tests. `local.properties` with `sdk.dir=...` works too; it is
 git-ignored.
+
+Build and install the spike app:
+
+```bash
+gradlew :app:assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+Then open **Payment Announcer → notification access settings** and grant access.
+The APK is debug-signed and has no `INTERNET` permission.
 
 The corpus test reads `../../sample_sms.txt`, the same 16 messages as
 `python app.py demo`, and asserts:
@@ -94,9 +107,19 @@ check(record.amountPaise == 3_700L)      // ₹37.00, integer paise
 check(record.dedupeKey == "amt:3700@2026-10-20 17:13")
 ```
 
-`ParserConfig.CHAI_STALL` is the demo configuration, not a loader. The app must
-load the stall's real `config.json` (or a typed equivalent) from assets and pass
-it in. The parser never reads files or the network.
+`ParserConfig.CHAI_STALL` is the demo configuration. The app loads the real
+`config.json` from assets; a Gradle task copies the repository-root file into the
+APK, so there is no second copy to drift:
+
+```kotlin
+import dev.viveknshah.payannouncer.config.ConfigLoader
+
+val config = ConfigLoader.load(assets.open("config.json"))
+```
+
+Unknown keys are ignored, missing sender lists stay empty (fail closed), and
+sender tokens are trimmed, uppercased and de-duplicated. Invalid JSON or a
+negative threshold throws `IllegalArgumentException`.
 
 The ledger keeps the same duplicate rules as `ledger.py`:
 
@@ -125,6 +148,32 @@ Dedupe, undo and daily stats stay in `:ledger` and are tested without Android.
 Room only keeps the rows; `PaymentDao.hasCountedKey` uses the same counted
 predicate as `ledger.py`, and undo rewrites the table in a transaction.
 
+## Notification-listener spike
+
+`NotificationIntakeService` receives `StatusBarNotification`s and maps a small
+package allowlist to the parser's sender tokens:
+
+| Package | Sender |
+|---|---|
+| `com.google.android.apps.nbu.paisa.user` | `GPAY` |
+| `com.phonepe.app` | `PHONEPE` |
+| `net.one97.paytm` | `PAYTM` |
+| `com.paytm.business` | `PAYTMB` |
+| HDFC / ICICI / SBI / Axis / Bank of Baroda apps | `HDFC`, `ICICI`, `SBI`, `AXIS`, `BOB` |
+| Google / AOSP / Samsung Messages | notification title (often `BOB`, `HDFC`) |
+
+Everything else is ignored. These package ids still need confirming on the test
+phone. Group summaries are dropped so a summary is not counted as a payment.
+The expanded big text is preferred over the collapsed text, and the
+notification post time is the parser's fallback timestamp. A notification
+repost inside the same minute is caught by the ledger's existing dedupe rules.
+
+This is a spike, not a finished intake path. It has **not been tested on a
+device** here (no phone or emulator was attached); the mapping and parser
+behaviour are covered by seven JVM tests. Bank apps whose package ids are not in
+the map are missed, and cross-source dedupe with bank SMS notifications is still
+on the roadmap.
+
 ## Parity contract
 
 - `PaymentRecord` field names map 1:1 to `sms_parser.PaymentRecord` (snake_case
@@ -149,8 +198,12 @@ android/
       Parser.kt
       ParserConfig.kt
       PaymentRecord.kt
+    src/main/kotlin/dev/viveknshah/payannouncer/config/
+      ConfigLoader.kt
     src/test/kotlin/dev/viveknshah/payannouncer/parser/
       ParserTest.kt
+    src/test/kotlin/dev/viveknshah/payannouncer/config/
+      ConfigLoaderTest.kt
     src/test/resources/
       sample_expected.tsv
   ledger/
@@ -169,13 +222,24 @@ android/
       RoomLedgerStore.kt
     src/test/kotlin/dev/viveknshah/payannouncer/storage/
       RoomLedgerStoreTest.kt
+  app/
+    build.gradle.kts
+    src/main/AndroidManifest.xml
+    src/main/kotlin/dev/viveknshah/payannouncer/
+      MainActivity.kt
+      AppGraph.kt
+      intake/NotificationSnapshot.kt
+      intake/NotificationIntake.kt
+      intake/NotificationIntakeService.kt
+    src/test/kotlin/dev/viveknshah/payannouncer/intake/
+      NotificationIntakeTest.kt
   tools/
     export_parser_golden.py
 ```
 
 ## Next
 
-`docs/android-roadmap.md` has the build order. The next code step is the typed
-config loader from assets, then the notification listener spike. Room now
-survives a reopen, so the remaining storage work is a migration policy when the
-schema changes.
+`docs/android-roadmap.md` has the build order. The next code step is the Hindi
+TTS queue with the system voice, then the template day summary. The notification
+listener needs a real-phone pass before it can be called reliable; until then,
+treat it as a working spike.

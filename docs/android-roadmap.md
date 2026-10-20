@@ -4,11 +4,12 @@ The Week 3 submission is the Python demo. This document is the plan for the
 thing she can actually keep in her pocket: an Android app that hears the
 payment, says it out loud in Hindi, and closes the day without a laptop.
 
-Status today: **step 0 is done, and step 1 has its rules and Room storage**. The
-parser, ledger and Room adapter are ported and pinned by 41 tests, including the
-same 16-message corpus as the Python demo (8 counted, ₹5,716) and a Room
-close/reopen test. The config loader and everything on the phone are still to
-build.
+Status today: **steps 0 and 1 are done**. The parser, config loader, ledger and
+Room storage are ported and pinned by 55 tests, including the same 16-message
+corpus as the Python demo (8 counted, ₹5,716), a Room close/reopen test and
+notification-to-ledger mapping tests. Step 2's notification listener and status
+screen are in place; Hindi TTS and the day summary are next. Nothing has been
+tested on a phone yet.
 
 ## Target architecture
 
@@ -29,8 +30,8 @@ build.
               (system voice first)    (template, optional Gemma 1B)
 ```
 
-One Kotlin app module, one pure-JVM core module. No server, no account, and no
-`INTERNET` permission.
+One Android app module, a Room storage library, and pure-JVM `core`/`ledger`
+libraries. No server, no account, and no `INTERNET` permission.
 
 ## Decisions to make now, not later
 
@@ -86,17 +87,19 @@ A summary is a nice-to-have. The announcement is the product.
 
 ```
 android/
-  core/                     done: parser, config, record, 25 tests
+  core/                     done: parser, config loader, record, 32 tests
   ledger/                   done: dedupe + daily stats, 10 tests
   storage/                  done: Room entity/DAO + RoomLedgerStore, 6 tests
   app/
-    data/ConfigLoader.kt             typed config from assets (next)
+    AppGraph.kt                     one Room database per process
+    MainActivity.kt                 spike status screen
+    intake/NotificationIntake.kt    done: package → sender, 7 tests
     intake/NotificationIntakeService.kt
-    intake/SmsReceiver.kt            (foss flavor)
-    voice/HindiAnnouncer.kt
-    summary/SummaryEngine.kt         template + optional model
-    ui/onboarding/                   notification access, battery, TTS check
-    ui/home/                         total, last payment, day summary
+    intake/SmsReceiver.kt           (foss flavor, later)
+    voice/HindiAnnouncer.kt         (next)
+    summary/SummaryEngine.kt        template + optional model
+    ui/onboarding/                  TTS check, battery setup
+    ui/home/                        total, last payment, day summary
 ```
 
 `core` and `ledger` stay free of Android imports. `storage` owns Room; keep the
@@ -143,28 +146,30 @@ review.
 
 | Phase | Work | Acceptance |
 |---|---|---|
-| 0 (done) | Kotlin parser, config, record, 25 tests | `gradlew :core:test` green; 8 sales / ₹5,716 on the corpus |
-| 1 (storage done) | `:ledger` + `:storage` Room adapter, same dedupe and daily stats; config loader from assets still to do | 16-message corpus produces the same stats as `ledger.py`; duplicate + undo tests; Room close/reopen test |
-| 2 | Notification listener, foreground service, Hindi TTS queue, home screen | 20 real notifications on a phone: correct announcement in under 2 seconds, no overlapping voices |
+| 0 (done) | Kotlin parser, config loader, record, 32 tests | `gradlew :core:test` green; 8 sales / ₹5,716 on the corpus |
+| 1 (done) | `:ledger` + `:storage` Room adapter, same dedupe and daily stats; config loader from assets | 16-message corpus produces the same stats as `ledger.py`; duplicate + undo tests; Room close/reopen test |
+| 2 (intake done) | Notification listener and status screen done; Hindi TTS queue and home summary next | 20 real notifications on a phone: correct announcement in under 2 seconds, no overlapping voices |
 | 3 | `foss` SMS flavor, cross-source dedupe, boot restart, OEM battery setup | 72-hour soak on two phones; totals match the bank SMS at end of day; survives reboot |
 | 4 | Onboarding for the two grants, TTS check, undo, day summary (template) | A non-technical person completes setup with one helper in five minutes |
 | 5 | Optional Gemma 1B behind a flag, guards, download screen | 20 summaries, zero wrong totals; model off still gives a full demo |
 | 6 | Signed release APK, checksum, install guide, privacy note | APK installs on a clean phone and runs with Wi-Fi and mobile data off |
 
 Part-time estimate: **5-6 weeks**. Full-time: about **3 weeks**. Phase 0 took a
-day and the Room storage took another; the device testing in phases 2-3 is what
-usually slips.
+day, storage another, and the intake spike a morning; the device testing in
+phases 2-3 is what usually slips.
 
 ## Testing
 
-- **JVM:** parser, ledger and summary guards. The Python suite remains the
-  oracle; change both in one commit.
+- **JVM:** parser, config loader, ledger and intake mapping. The Python suite
+  remains the oracle; change both in one commit.
 - **Golden corpus:** `sample_sms.txt` is the shared fixture. Keep the expected
   8 / ₹5,716 assertion in both languages.
 - **Room under Robolectric:** field round-trip, dedupe across store instances,
   undo rewrite, and a file database opened again after close. No emulator.
-- **Instrumented:** Room migrations on a device, notification parsing from saved
-  `StatusBarNotification` fixtures, service restart after reboot.
+- **App intake (JVM):** package mapping, expanded text, group summaries, bank
+  title, duplicate repost. The Android service itself is thin and untested here.
+- **Instrumented / device:** real GPay, PhonePe and Paytm notifications, Room
+  migrations, service restart after reboot. Not run yet; this is the next gate.
 - **Device matrix:** Android 8 Go edition, 11, 13, 14; at least one Xiaomi or
   Vivo plus one Samsung. Cheap phones are the target, not a flagship.
 - **Field test:** three days at the stall, with the day's total compared against

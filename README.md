@@ -80,15 +80,15 @@ from `bills.json`, never from the model.
 
 ## Android port (in progress)
 
-The parser, ledger rules and Room storage are ported to Kotlin in `:core`,
-`:ledger` and an Android `:storage` library, with 41 tests. The suite includes
-the same 16-message corpus and ₹5,716 total as the Python demo, plus a Room
-round-trip and a close/reopen persistence test. There is no Android app yet: the
-config loader, notification listener, Hindi TTS and UI are planned in
-[docs/android-roadmap.md](docs/android-roadmap.md). The Python app remains the
-reference implementation.
+The parser, ledger rules, Room storage and a notification-listener spike are in
+Kotlin across `:core`, `:ledger`, `:storage` and a debug `:app`, with 55 tests.
+The suite includes the same 16-message corpus and ₹5,716 total as the Python
+demo, a Room close/reopen test, and notification-to-ledger mapping tests. The app
+has a minimal status screen; Hindi TTS, the day summary and the SMS flavor are
+still to build. The spike has not been tested on a phone here. The Python app
+remains the reference implementation.
 
-See [android/README.md](android/README.md) for the module and test commands.
+See [android/README.md](android/README.md) for the module, test and APK commands.
 
 ## Files
 
@@ -103,7 +103,7 @@ See [android/README.md](android/README.md) for the module and test commands.
 | `app.py` | `demo`, `ingest`, `watch`, `serve`, `summary`, `undo` |
 | `lang_hi.json` | Hindi templates and voice config |
 | `test_suite.py` | 41 tests |
-| `android/` | Kotlin parser + ledger + Room storage (`:core`, `:ledger`, `:storage`; 41 tests) |
+| `android/` | Kotlin parser + ledger + Room storage + notification spike (`:core`, `:ledger`, `:storage`, `:app`; 55 tests) |
 | `docs/android-roadmap.md` | Plan for the on-phone app |
 
 `README.txt` keeps the original plain-text walkthrough, including the full

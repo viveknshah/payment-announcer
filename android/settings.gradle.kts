@@ -10,3 +10,4 @@ rootProject.name = "payannouncer-android"
 include(":core")
 include(":ledger")
 include(":storage")
+include(":app")
