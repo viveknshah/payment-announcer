@@ -82,7 +82,7 @@ from `bills.json`, never from the model.
 
 The parser, ledger rules, Room storage, notification listener, Hindi TTS,
 template summary, `foss` SMS flavor and watchdog are in Kotlin across `:core`,
-`:ledger`, `:storage` and `:app`, with 68 tests. The suite includes the same
+`:ledger`, `:storage` and `:app`, with 71 tests. The suite includes the same
 16-message corpus and ₹5,716 total as the Python demo, Room persistence and
 cross-source dedupe, and Hindi text tests. Signed `play` and `foss` release APKs
 build locally. The app has not been tested on a physical phone here; the
@@ -107,7 +107,7 @@ See [android/README.md](android/README.md) for the module, test and APK commands
 | `app.py` | `demo`, `ingest`, `watch`, `serve`, `summary`, `undo` |
 | `lang_hi.json` | Hindi templates and voice config |
 | `test_suite.py` | 41 tests |
-| `android/` | Kotlin parser + ledger + Room storage + notification/SMS app (`:core`, `:ledger`, `:storage`, `:app`; 68 tests) |
+| `android/` | Kotlin parser + ledger + Room storage + notification/SMS app (`:core`, `:ledger`, `:storage`, `:app`; 71 tests) |
 | `docs/android-roadmap.md` | Plan and status for the on-phone app |
 | `docs/install.md` | Sideload and permission guide |
 | `docs/privacy.md` | What the Android app reads and stores |

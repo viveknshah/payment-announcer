@@ -7,7 +7,7 @@ payment, says it out loud in Hindi, and closes the day without a laptop.
 Status today: **v0.2 code-complete, release built, device field test still open**.
 The parser, config loader, ledger, Room storage, notification listener, Hindi TTS,
 template summary, `foss` SMS flavor, cross-source dedupe and watchdog are in
-place, with 68 JVM/Robolectric tests. Signed `play` and `foss` release APKs,
+place, with 71 JVM/Robolectric tests. Signed `play` and `foss` release APKs,
 checksums, an install guide and a privacy note exist. Nothing has been run on a
 physical phone in this repository, so the two-source field test and OEM soak are
 still the gate before trusting it at the stall. The optional on-device Gemma
@@ -95,7 +95,7 @@ android/
   app/
     AppGraph.kt                     one Room database + config + speaker
     MainActivity.kt                 grants, total, summary, undo, records
-    intake/NotificationIntake.kt    package → sender, 7 tests
+    intake/NotificationIntake.kt    package and sender mapping, 10 tests
     intake/NotificationIntakeService.kt
     intake/PaymentIntake.kt         shared notification/SMS parse path
     intake/SmsReceiver.kt           foss flavor

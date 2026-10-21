@@ -116,6 +116,61 @@ class NotificationIntakeTest {
     }
 
     @Test
+    fun messagesSenderIsExtractedFromTheMessagePrefix() {
+        val (intake, _) = newIntake()
+
+        val record = intake.ingest(
+            snapshot(
+                pkg = MESSAGES,
+                title = "Messages",
+                text = "VK-BOBSMS: Credit Alert! Rs.34.00 credited to Bank of Baroda " +
+                    "A/c XX0000 on 20-10-26 from VPA ravi.k@upi (UPI 100000000001)",
+            ),
+        )
+
+        assertEquals("VK-BOBSMS", record?.sender)
+        assertEquals("bank_sms", record?.source)
+        assertEquals(3_400L, record?.amountPaise)
+        assertEquals("100000000001", record?.txnId)
+        assertEquals(false, record?.needsReview)
+    }
+
+    @Test
+    fun messagesBankDisplayNameIsMappedToTheParserToken() {
+        val (intake, _) = newIntake()
+
+        val record = intake.ingest(
+            snapshot(
+                pkg = MESSAGES,
+                title = "Bank of Baroda",
+                text = "Credit Alert! Rs.34.00 credited to A/c XX0000 on 20-10-26 " +
+                    "from VPA ravi.k@upi (UPI 100000000001)",
+            ),
+        )
+
+        assertEquals("BOB", record?.sender)
+        assertEquals("bank_sms", record?.source)
+        assertEquals(3_400L, record?.amountPaise)
+        assertEquals(false, record?.needsReview)
+    }
+
+    @Test
+    fun messagesFromAnUnrecognisedConversationAreIgnored() {
+        val (intake, store) = newIntake()
+
+        val record = intake.ingest(
+            snapshot(
+                pkg = MESSAGES,
+                title = "Ravi",
+                text = "₹250 received for the tea",
+            ),
+        )
+
+        assertNull(record)
+        assertTrue(store.all().isEmpty())
+    }
+
+    @Test
     fun bankAppPackageMapsToItsBankToken() {
         val (intake, _) = newIntake()
 

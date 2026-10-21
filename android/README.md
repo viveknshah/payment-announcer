@@ -58,12 +58,12 @@ gradlew.bat test
 ./gradlew test
 ```
 
-The suite is **68 unique tests** across the modules:
+The suite is **71 unique tests** across the modules:
 
 - `:core:test` — 32 parser/config tests, including field-by-field corpus parity;
 - `:ledger:test` — 14 ledger/dedupe/stats tests;
 - `:storage:testDebugUnitTest` — 7 Robolectric storage tests;
-- `:app:testPlayDebugUnitTest` and `:app:testFossDebugUnitTest` — 15 app tests
+- `:app:testPlayDebugUnitTest` and `:app:testFossDebugUnitTest` — 18 app tests
   (intake + Hindi text); the same tests run for both flavors.
 
 For a JDK-only run that skips Android:
